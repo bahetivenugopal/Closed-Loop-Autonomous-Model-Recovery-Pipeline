@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: model-trainer-bootstrap
+  namespace: mlops
+spec:
+  template:
+    spec:
+      containers:
+      - name: trainer
+        image: nimish1106/sh-mlops-base:v3
+        # Set the PYTHONPATH so Python can find the 'src' folder
+        env:
+        - name: PYTHONPATH
+          value: "/app"
+        - name: MLFLOW_TRACKING_URI
+          value: "http://mlflow-service:5000"
+        - name: DATABASE_URL
+          value: "postgresql://mlops:mlops@mlops-postgres-service:5432/mlops"
+        command: ["python", "src/train_model_mlflow.py"]
+        volumeMounts:
+        - name: mlflow-artifacts
+          mountPath: /mlflow
+      restartPolicy: OnFailure
+      volumes:
+      - name: mlflow-artifacts
+        persistentVolumeClaim:
+          claimName: mlflow-pvc

@@ -1,0 +1,24 @@
+FROM apache/airflow:2.7.3-python3.10
+
+USER root
+
+# No system packages are required here: requirements.txt pins psycopg2-binary, which ships
+# prebuilt wheels, so no compiler or libpq headers are needed. The apt-get step that used to
+# live here also broke the build, because this base image (Debian 11) carries a PostgreSQL
+# APT source that upstream has since retired, making 'apt-get update' fail with exit 100.
+
+# Fix monitoring directory permissions - make world-writable
+RUN mkdir -p /app/monitoring/{predictions,labels,metrics,reports,retraining,reference,drift_reports} && \
+    chmod -R 777 /app/monitoring
+
+USER airflow
+
+# Copy and install Python dependencies
+COPY requirements.txt /requirements.txt
+RUN pip install --upgrade pip && \
+    pip install -r /requirements.txt
+
+# Set up Airflow home
+ENV AIRFLOW_HOME=/opt/airflow
+
+WORKDIR /opt/airflow

@@ -1,0 +1,240 @@
+services:
+  postgres:
+    image: postgres:13
+    container_name: airflow-postgres
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres-db-volume:/var/lib/postgresql/data
+    networks:
+      - mlops-network
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.9.2
+    container_name: mlflow-server
+    ports:
+      - "5000:5000"
+    environment:
+      GUNICORN_WORKERS: "2"
+      GUNICORN_TIMEOUT: "300"
+    volumes:
+      - ./mlflow:/mlflow
+    command: >
+      mlflow server --backend-store-uri sqlite:///mlflow/mlflow.db --default-artifact-root /mlflow/artifacts --host 0.0.0.0 --port 5000
+    networks:
+      - mlops-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  airflow-webserver:
+    image: ${AIRFLOW_WEB_IMAGE:-nimish1106/sh-mlops-airflow-web:v1}
+    pull_policy: always
+    container_name: airflow-webserver
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mlflow:
+        condition: service_healthy
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
+      - AIRFLOW__CORE__FERNET_KEY=ZmDfcTF7_60GrrY167zsiPd67pEvs0aGOv2oasOM1Pg=
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__WEBSERVER__EXPOSE_CONFIG=True
+      - AIRFLOW__WEBSERVER__SECRET_KEY=k9Yp3n7sQ8tBv2LxZ4mR0uF1wE6hC5aG
+      - AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION=True
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./src:/app/src
+      - ./monitoring:/app/monitoring
+      - ./mlflow:/mlflow
+    ports:
+      - "${AIRFLOW_WEBSERVER_HOST_PORT:-8080}:8080"
+    networks:
+      - mlops-network
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    command: >
+      bash -c "airflow db init &&
+               airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com || true &&
+               airflow webserver"
+
+  airflow-scheduler:
+    image: ${AIRFLOW_SCHEDULER_IMAGE:-nimish1106/sh-mlops-airflow-scheduler:v1}
+    pull_policy: always
+    container_name: airflow-scheduler
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mlflow:
+        condition: service_healthy
+    environment:
+      - AIRFLOW__CORE__EXECUTOR=LocalExecutor
+      - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres/airflow
+      - AIRFLOW__CORE__FERNET_KEY=ZmDfcTF7_60GrrY167zsiPd67pEvs0aGOv2oasOM1Pg=
+      - AIRFLOW__WEBSERVER__SECRET_KEY=k9Yp3n7sQ8tBv2LxZ4mR0uF1wE6hC5aG
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - MLFLOW_HOME=/home/airflow/.mlflow
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./src:/app/src
+      - ./monitoring:/app/monitoring
+      - ./mlflow:/mlflow
+      - airflow-mlflow-cache:/home/airflow/.mlflow
+    env_file:
+      - .env
+    networks:
+      - mlops-network
+    restart: unless-stopped
+    command: >
+      bash -c "airflow db init || true &&
+               airflow scheduler"
+
+  trainer:
+    image: ${BASE_IMAGE:-nimish1106/sh-mlops-base:v4}
+    pull_policy: always
+    container_name: model-trainer
+    volumes:
+      - ./data:/app/data
+      - ./mlflow:/mlflow
+      - ./models:/app/models
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - PYTHONPATH=/app:/app/src
+    depends_on:
+      mlflow:
+        condition: service_healthy
+    networks:
+      - mlops-network
+    command: python -m src.train_model_mlflow
+    restart: "no"
+
+  bootstrap:
+    image: ${BASE_IMAGE:-nimish1106/sh-mlops-base:v4}
+    pull_policy: always
+    container_name: reference-bootstrap
+    volumes:
+      - ./data:/app/data
+      - ./monitoring:/app/monitoring
+    networks:
+      - mlops-network
+    command: python scripts/bootstrap_reference.py
+    restart: "no"
+
+  api:
+    image: ${BASE_IMAGE:-nimish1106/sh-mlops-base:v4}
+    pull_policy: always
+    container_name: credit-risk-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./mlflow:/mlflow
+      - ./monitoring:/app/monitoring
+      - ./data:/app/data
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - ENVIRONMENT=production
+    depends_on:
+      mlflow:
+        condition: service_healthy
+    networks:
+      - mlops-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    env_file:
+      - .env
+    restart: unless-stopped
+    command: uvicorn src.api_mlflow:app --host 0.0.0.0 --port 8000
+
+  monitoring:
+    image: ${MONITORING_IMAGE:-nimish1106/sh-mlops-monitoring:v1}
+    pull_policy: always
+    container_name: monitoring-scheduler
+    volumes:
+      - ./monitoring:/app/monitoring
+      - ./mlflow:/mlflow
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - MONITORING_INTERVAL=300
+      - MONITORING_LOOKBACK=24
+      - PYTHONPATH=/app:/app/src
+    depends_on:
+      mlflow:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+      postgres-mlops:
+        condition: service_healthy
+    networks:
+      - mlops-network
+    env_file:
+      - .env
+    restart: unless-stopped
+    command: python -m src.orchestration.scheduler
+
+  postgres-mlops:
+    image: postgres:13
+    container_name: mlops-postgres
+    environment:
+      POSTGRES_USER: mlops
+      POSTGRES_PASSWORD: mlops
+      POSTGRES_DB: mlops
+    volumes:
+      - postgres-mlops-volume:/var/lib/postgresql/data
+      - ./scripts/db/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
+    ports:
+      - "5433:5432"
+    networks:
+      - mlops-network
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "mlops"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres-mlops
+    networks:
+      - mlops-network
+
+volumes:
+  postgres-db-volume:
+  airflow-mlflow-cache:
+  postgres-mlops-volume:
+
+networks:
+  mlops-network:
+    driver: bridge

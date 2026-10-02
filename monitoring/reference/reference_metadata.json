@@ -1,0 +1,23 @@
+{
+  "created_at": "2026-10-02T11:30:02.619632",
+  "source": "training_test_split",
+  "num_samples": 30000,
+  "num_features": 12,
+  "reference_hash": "3c7679fc25aa259635e06d44ec069dc8a018cddb53101eedee55f258520e6067",
+  "purpose": "frozen_baseline_for_drift_detection",
+  "mutation_policy": "NEVER - reference is immutable",
+  "features": [
+    "Unnamed: 0",
+    "SeriousDlqin2yrs",
+    "RevolvingUtilizationOfUnsecuredLines",
+    "age",
+    "NumberOfTime30_59DaysPastDueNotWorse",
+    "DebtRatio",
+    "MonthlyIncome",
+    "NumberOfOpenCreditLinesAndLoans",
+    "NumberOfTimes90DaysLate",
+    "NumberRealEstateLoansOrLines",
+    "NumberOfTime60_89DaysPastDueNotWorse",
+    "NumberOfDependents"
+  ]
+}

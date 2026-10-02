@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airflow-webserver
+  namespace: mlops
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: airflow-webserver
+  template:
+    metadata:
+      labels:
+        app: airflow-webserver
+    spec:
+      initContainers:
+      - name: wait-for-db
+        image: postgres:13
+        command: ['sh', '-c', 'until pg_isready -h postgres -p 5432; do echo waiting for db; sleep 2; done;']
+      containers:
+      - name: webserver
+        image: nimish1106/sh-mlops-airflow-web:v1
+        ports:
+        - containerPort: 8080
+        env:
+        - name: AIRFLOW__CORE__EXECUTOR
+          value: "LocalExecutor"
+        - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
+          value: "postgresql+psycopg2://airflow:airflow@postgres:5432/airflow"
+        - name: AIRFLOW__CORE__FERNET_KEY
+          value: "ZmDfcTF7_60GrrY167zsiPd67pEvs0aGOv2oasOM1Pg="
+        - name: AIRFLOW__WEBSERVER__SECRET_KEY
+          value: "k9Yp3n7sQ8tBv2LxZ4mR0uF1wE6hC5aG"
+        - name: MLFLOW_TRACKING_URI
+          value: "http://mlflow-service:5000"
+        - name: AIRFLOW_ADMIN_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: mlops-secrets
+              key: airflow-username
+              optional: true
+        - name: AIRFLOW_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mlops-secrets
+              key: airflow-password
+              optional: true
+        command: ["/bin/bash", "-c"]
+        args:
+          - |
+            airflow db migrate &&
+            airflow users create --username "${AIRFLOW_ADMIN_USERNAME:-admin}" --password "${AIRFLOW_ADMIN_PASSWORD:-admin}" --firstname Admin --lastname User --role Admin --email admin@example.com || true &&
+            airflow webserver
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: airflow-webserver-service
+  namespace: mlops
+spec:
+  selector:
+    app: airflow-webserver
+  ports:
+    - port: 8080
+      targetPort: 8080

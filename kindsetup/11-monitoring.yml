@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: monitoring
+  namespace: mlops
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: monitoring
+
+  template:
+    metadata:
+      labels:
+        app: monitoring
+
+    spec:
+      containers:
+      - name: monitoring
+
+        image: nimish1106/sh-mlops-monitoring:v2
+        imagePullPolicy: Always
+
+        env:
+        - name: MLFLOW_TRACKING_URI
+          value: http://mlflow-service:5000
+
+        - name: MONITORING_INTERVAL
+          value: "300"
+
+        - name: MONITORING_LOOKBACK
+          value: "24"
+
+        - name: PYTHONPATH
+          value: /app:/app/src
+
+        # ---------------- DATABASE CONFIG ----------------
+        - name: POSTGRES_HOST
+          value: mlops-postgres-service
+
+        - name: POSTGRES_PORT
+          value: "5432"
+
+        - name: POSTGRES_DB
+          value: mlops
+
+        - name: POSTGRES_USER
+          value: mlops
+
+        - name: POSTGRES_PASSWORD
+          value: mlops
+
+        command:
+        - python
+
+        args:
+        - -m
+        - src.orchestration.scheduler
+
+        volumeMounts:
+        - name: monitoring-volume
+          mountPath: /app/monitoring
+
+        - name: mlflow-volume
+          mountPath: /mlflow
+
+        - name: data-volume
+          mountPath: /app/data
+
+        - name: reference-volume
+          mountPath: /app/monitoring/reference
+
+      volumes:
+      - name: monitoring-volume
+        hostPath:
+          path: /home/ubuntu/self-healing-mlops/monitoring
+          type: DirectoryOrCreate
+
+      - name: mlflow-volume
+        hostPath:
+          path: /home/ubuntu/self-healing-mlops/mlflow
+          type: DirectoryOrCreate
+
+      - name: data-volume
+        hostPath:
+          path: /home/ubuntu/self-healing-mlops/data
+          type: DirectoryOrCreate
+
+      - name: reference-volume
+        hostPath:
+          path: /home/ubuntu/self-healing-mlops/monitoring/reference
+          type: DirectoryOrCreate

@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mlflow-server
+  namespace: mlops
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mlflow
+  template:
+    metadata:
+      labels:
+        app: mlflow
+    spec:
+      containers:
+      - name: mlflow
+        # Using your base image because it already has psycopg2 installed!
+        image: nimish1106/sh-mlops-base:v3
+        ports:
+        - containerPort: 5000
+        env:
+        - name: DB_URI
+          value: "postgresql://airflow:airflow@postgres:5432/airflow"
+        # Overriding the entrypoint to run the mlflow server
+        command: ["mlflow"]
+        args: [
+          "server",
+          "--backend-store-uri", "$(DB_URI)",
+          "--default-artifact-root", "/mlflow/artifacts",
+          "--host", "0.0.0.0",
+          "--port", "5000"
+        ]
+        volumeMounts:
+        - name: artifacts
+          mountPath: /mlflow
+      volumes:
+      - name: artifacts
+        persistentVolumeClaim:
+          claimName: mlflow-pvc

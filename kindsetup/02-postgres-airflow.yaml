@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-airflow
+  namespace: mlops
+spec:
+  serviceName: "postgres-airflow"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-airflow
+  template:
+    metadata:
+      labels:
+        app: postgres-airflow
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:13
+        env:
+        - name: POSTGRES_USER
+          value: "airflow"
+        - name: POSTGRES_PASSWORD
+          value: "airflow"
+        - name: POSTGRES_DB
+          value: "airflow"
+        ports:
+        - containerPort: 5432
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/postgresql/data
+       
+        readinessProbe:
+          exec:
+            command: ["pg_isready", "-U", "airflow"]
+          initialDelaySeconds: 5
+          periodSeconds: 5
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres # This is the DNS name other pods will use
+  namespace: mlops
+spec:
+  selector:
+    app: postgres-airflow
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432

@@ -1,0 +1,81 @@
+apiVersion: v1
+
+kind: Namespace
+
+metadata:
+
+  name: mlops
+
+---
+
+apiVersion: v1
+
+kind: PersistentVolumeClaim
+
+metadata:
+
+  name: postgres-airflow-pvc
+
+  namespace: mlops
+
+spec:
+
+  accessModes:
+
+    - ReadWriteOnce
+
+  resources:
+
+    requests:
+
+      storage: 1Gi
+
+---
+
+apiVersion: v1
+
+kind: PersistentVolumeClaim
+
+metadata:
+
+  name: postgres-mlops-pvc
+
+  namespace: mlops
+
+spec:
+
+  accessModes:
+
+    - ReadWriteOnce
+
+  resources:
+
+    requests:
+
+      storage: 1Gi
+
+# ... keep your existing postgres PVCs above ...
+
+---
+
+apiVersion: v1
+
+kind: PersistentVolumeClaim
+
+metadata:
+
+  name: mlflow-pvc
+
+  namespace: mlops
+
+spec:
+
+  accessModes:
+
+    - ReadWriteOnce
+
+  resources:
+
+    requests:
+
+      storage: 2Gi

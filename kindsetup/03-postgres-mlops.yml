@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-mlops
+  namespace: mlops
+spec:
+  serviceName: "postgres-mlops"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-mlops
+  template:
+    metadata:
+      labels:
+        app: postgres-mlops
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:13
+        env:
+        - name: POSTGRES_USER
+          value: "mlops"
+        - name: POSTGRES_PASSWORD
+          value: "mlops"
+        - name: POSTGRES_DB
+          value: "mlops"
+        volumeMounts:
+        - name: mlops-data
+          mountPath: /var/lib/postgresql/data
+        - name: schema-volume
+          mountPath: /docker-entrypoint-initdb.d/
+      volumes:
+      - name: mlops-data
+        persistentVolumeClaim:
+          claimName: postgres-mlops-pvc
+      - name: schema-volume
+        configMap:
+          name: mlops-db-schema
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mlops-postgres-service
+  namespace: mlops
+spec:
+  selector:
+    app: postgres-mlops
+  ports:
+    - port: 5432
+      targetPort: 5432

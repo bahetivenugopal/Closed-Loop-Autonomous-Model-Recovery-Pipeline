@@ -1,0 +1,115 @@
+{
+  "timestamp": "2026-01-06T10:49:03.345637",
+  "reference_metadata": {
+    "created_at": "2026-01-04T09:33:27.504074",
+    "source": "training_test_split",
+    "num_samples": 30000,
+    "num_features": 12,
+    "reference_hash": "3c7679fc25aa259635e06d44ec069dc8a018cddb53101eedee55f258520e6067",
+    "purpose": "frozen_baseline_for_drift_detection",
+    "mutation_policy": "NEVER - reference is immutable",
+    "features": [
+      "Unnamed: 0",
+      "SeriousDlqin2yrs",
+      "RevolvingUtilizationOfUnsecuredLines",
+      "age",
+      "NumberOfTime30_59DaysPastDueNotWorse",
+      "DebtRatio",
+      "MonthlyIncome",
+      "NumberOfOpenCreditLinesAndLoans",
+      "NumberOfTimes90DaysLate",
+      "NumberRealEstateLoansOrLines",
+      "NumberOfTime60_89DaysPastDueNotWorse",
+      "NumberOfDependents"
+    ]
+  },
+  "dataset_drift_detected": false,
+  "drift_share": 0.5,
+  "num_drifted_features": 4,
+  "num_features_total": 10,
+  "num_features_evaluated": 10,
+  "num_features_excluded": 0,
+  "excluded_features": [],
+  "features": [
+    {
+      "feature": "RevolvingUtilizationOfUnsecuredLines",
+      "drift_detected": false,
+      "stat_test": "Wasserstein distance (normed)",
+      "p_value": null,
+      "threshold": 0.1,
+      "drift_score": 0.01725996442328072
+    },
+    {
+      "feature": "age",
+      "drift_detected": true,
+      "stat_test": "Wasserstein distance (normed)",
+      "p_value": null,
+      "threshold": 0.1,
+      "drift_score": 0.5643722373467072
+    },
+    {
+      "feature": "NumberOfTime30_59DaysPastDueNotWorse",
+      "drift_detected": true,
+      "stat_test": "Wasserstein distance (normed)",
+      "p_value": null,
+      "threshold": 0.1,
+      "drift_score": 0.10053234303920885
+    },
+    {
+      "feature": "DebtRatio",
+      "drift_detected": false,
+      "stat_test": "Wasserstein distance (normed)",
+      "p_value": null,
+      "threshold": 0.1,
+      "drift_score": 0.07301417024976165
+    },
+    {
+      "feature": "MonthlyIncome",
+      "drift_detected": true,
+      "stat_test": "Wasserstein distance (normed)",
+      "p_value": null,
+      "threshold": 0.1,
+      "drift_score": 0.23474440427863455
+    },
+    {
+      "feature": "NumberOfOpenCreditLinesAndLoans",
+      "drift_detected": true,
+      "stat_test": "Wasserstein distance (normed)",
+      "p_value": null,
+      "threshold": 0.1,
+      "drift_score": 0.42100454100037277
+    },
+    {
+      "feature": "NumberOfTimes90DaysLate",
+      "drift_detected": false,
+      "stat_test": "Wasserstein distance (normed)",
+      "p_value": null,
+      "threshold": 0.1,
+      "drift_score": 0.028562735544686357
+    },
+    {
+      "feature": "NumberRealEstateLoansOrLines",
+      "drift_detected": false,
+      "stat_test": "Wasserstein distance (normed)",
+      "p_value": null,
+      "threshold": 0.1,
+      "drift_score": 0.022275450921988866
+    },
+    {
+      "feature": "NumberOfTime60_89DaysPastDueNotWorse",
+      "drift_detected": false,
+      "stat_test": "Wasserstein distance (normed)",
+      "p_value": null,
+      "threshold": 0.1,
+      "drift_score": 0.05977369876586752
+    },
+    {
+      "feature": "NumberOfDependents",
+      "drift_detected": false,
+      "stat_test": "Wasserstein distance (normed)",
+      "p_value": null,
+      "threshold": 0.1,
+      "drift_score": 0.025832673886752713
+    }
+  ]
+}

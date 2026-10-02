@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airflow-scheduler
+  namespace: mlops
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: airflow-scheduler
+  template:
+    metadata:
+      labels:
+        app: airflow-scheduler
+    spec:
+      containers:
+      - name: scheduler
+        image: nimish1106/sh-mlops-airflow-scheduler:v1
+        env:
+        - name: AIRFLOW__CORE__EXECUTOR
+          value: "LocalExecutor"
+        - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
+          value: "postgresql+psycopg2://airflow:airflow@postgres:5432/airflow"
+        command: ["/bin/bash", "-c"]
+        args: ["airflow db migrate || true && airflow scheduler"]

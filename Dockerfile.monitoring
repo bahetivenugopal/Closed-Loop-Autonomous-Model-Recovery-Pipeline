@@ -1,0 +1,21 @@
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# Make pip installs more reliable on slow or unstable networks.
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1
+ENV PIP_DEFAULT_TIMEOUT=180
+
+# Install dependencies first for better layer caching.
+COPY requirements.txt .
+RUN python -m pip install --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir --retries 10 --timeout 180 -r requirements.txt
+
+# Copy only what monitoring needs.
+COPY src ./src
+COPY scripts ./scripts
+
+ENV PYTHONPATH=/app:/app/src
+ENV PYTHONUNBUFFERED=1
+
+CMD ["python", "-m", "src.orchestration.scheduler"]

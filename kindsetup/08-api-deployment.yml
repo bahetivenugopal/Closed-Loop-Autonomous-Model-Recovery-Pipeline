@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: credit-risk-api
+  namespace: mlops
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: credit-risk-api
+
+  template:
+    metadata:
+      labels:
+        app: credit-risk-api
+
+    spec:
+      containers:
+      - name: api
+        image: nimish1106/sh-mlops-base:v3
+
+        env:
+        - name: PYTHONPATH
+          value: "/app"
+
+        - name: MLFLOW_TRACKING_URI
+          value: "http://mlflow-service:5000"
+
+        - name: DATABASE_URL
+          value: "postgresql://mlops:mlops@mlops-postgres-service:5432/mlops"
+
+        command: ["uvicorn", "src.api_mlflow:app", "--host", "0.0.0.0", "--port", "8000"]
+
+        ports:
+        - containerPort: 8000
+
+        volumeMounts:
+        - name: mlflow-artifacts
+          mountPath: /mlflow
+
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 20
+          periodSeconds: 10
+
+      volumes:
+      - name: mlflow-artifacts
+        persistentVolumeClaim:
+          claimName: mlflow-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-service
+  namespace: mlops
+
+spec:
+  selector:
+    app: credit-risk-api
+
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000

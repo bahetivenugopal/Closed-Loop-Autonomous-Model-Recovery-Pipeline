@@ -1,0 +1,62 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+.mypy_cache/
+.pytest_cache/
+
+# Data (source CSVs excluded, use COPY in Dockerfile for specific files)
+data/processed/
+
+# MLflow artifacts (mounted as volume)
+mlflow/
+
+# Git
+.git/
+.git/hooks/
+.gitignore
+.gitattributes
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing (exclude test files but keep setup scripts)
+tests/
+
+# Documentation (exclude docs but keep README for reference)
+docs/
+*.md
+!README.md
+
+# Logs
+*.log
+test-unit-output.log
+integration_test_output.txt
+.coverage
+coverage.xml
+
+# Environment
+.env
+.env.local
+
+# Makefile backups
+Makefile.backup
+make
+
+# Temporary files
+*.bak
+*.backup
+*.tmp

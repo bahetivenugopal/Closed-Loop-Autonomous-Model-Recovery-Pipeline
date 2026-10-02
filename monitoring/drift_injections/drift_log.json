@@ -1,0 +1,160 @@
+{
+  "drift_events": [
+    {
+      "timestamp": "2026-03-30T06:40:09.250622",
+      "drift_type": "covariate_shift_scaling",
+      "affected_features": [
+        "MonthlyIncome"
+      ],
+      "magnitude": 1.4,
+      "reason": "Simulated economic improvement - average income rises",
+      "metadata": {
+        "original_mean": 6560.203149606299,
+        "new_mean": 9184.28440944882
+      }
+    },
+    {
+      "timestamp": "2026-03-30T06:40:09.265022",
+      "drift_type": "covariate_shift_scaling",
+      "affected_features": [
+        "MonthlyIncome"
+      ],
+      "magnitude": 1.5,
+      "reason": "Major economic boom - income increases 50%",
+      "metadata": {
+        "original_mean": 9184.28440944882,
+        "new_mean": 13776.426614173226
+      }
+    },
+    {
+      "timestamp": "2026-03-30T06:40:09.282648",
+      "drift_type": "covariate_shift_location",
+      "affected_features": [
+        "age"
+      ],
+      "magnitude": 5,
+      "reason": "Significant demographic shift - population ages 5 years",
+      "metadata": {
+        "original_mean": 51.21125,
+        "new_mean": 56.21125
+      }
+    },
+    {
+      "timestamp": "2026-03-30T06:40:09.300634",
+      "drift_type": "covariate_shift_scaling",
+      "affected_features": [
+        "RevolvingUtilizationOfUnsecuredLines"
+      ],
+      "magnitude": 5.3,
+      "reason": "Credit usage patterns change - 30% increase in utilization",
+      "metadata": {
+        "original_mean": 1.2951879287050003,
+        "new_mean": 6.8644960221365015
+      }
+    },
+    {
+      "timestamp": "2026-03-30T06:40:09.318188",
+      "drift_type": "covariate_shift_location",
+      "affected_features": [
+        "NumberOfOpenCreditLinesAndLoans"
+      ],
+      "magnitude": 10,
+      "reason": "Credit availability increases - average +2 credit lines",
+      "metadata": {
+        "original_mean": 8.70125,
+        "new_mean": 18.70125
+      }
+    },
+    {
+      "timestamp": "2026-03-30T06:40:09.333315",
+      "drift_type": "covariate_shift_scaling",
+      "affected_features": [
+        "DebtRatio"
+      ],
+      "magnitude": 2.5,
+      "reason": "Debt burden decreases - households pay down debt",
+      "metadata": {
+        "original_mean": 378.507322008715,
+        "new_mean": 946.2683050217876
+      }
+    },
+    {
+      "timestamp": "2026-04-27T06:29:04.044587",
+      "drift_type": "covariate_shift_scaling",
+      "affected_features": [
+        "MonthlyIncome"
+      ],
+      "magnitude": 1.5,
+      "reason": "Major economic boom - income increases 50%",
+      "metadata": {
+        "original_mean": 6560.203149606299,
+        "new_mean": 9840.304724409449
+      }
+    },
+    {
+      "timestamp": "2026-04-27T06:29:04.059239",
+      "drift_type": "covariate_shift_location",
+      "affected_features": [
+        "age"
+      ],
+      "magnitude": 5,
+      "reason": "Significant demographic shift - population ages 5 years",
+      "metadata": {
+        "original_mean": 51.21125,
+        "new_mean": 56.21125
+      }
+    },
+    {
+      "timestamp": "2026-04-27T06:29:04.071482",
+      "drift_type": "covariate_shift_scaling",
+      "affected_features": [
+        "RevolvingUtilizationOfUnsecuredLines"
+      ],
+      "magnitude": 5.3,
+      "reason": "Credit usage patterns change - 30% increase in utilization",
+      "metadata": {
+        "original_mean": 1.2951879287050003,
+        "new_mean": 6.8644960221365015
+      }
+    },
+    {
+      "timestamp": "2026-04-27T06:29:04.082566",
+      "drift_type": "covariate_shift_location",
+      "affected_features": [
+        "NumberOfOpenCreditLinesAndLoans"
+      ],
+      "magnitude": 10,
+      "reason": "Credit availability increases - average +2 credit lines",
+      "metadata": {
+        "original_mean": 8.70125,
+        "new_mean": 18.70125
+      }
+    },
+    {
+      "timestamp": "2026-04-27T06:29:04.092185",
+      "drift_type": "covariate_shift_scaling",
+      "affected_features": [
+        "DebtRatio"
+      ],
+      "magnitude": 2.5,
+      "reason": "Debt burden decreases - households pay down debt",
+      "metadata": {
+        "original_mean": 378.507322008715,
+        "new_mean": 946.2683050217876
+      }
+    },
+    {
+      "timestamp": "2026-04-27T06:39:07.205928",
+      "drift_type": "population_shift",
+      "affected_features": [
+        "SeriousDlqin2yrs"
+      ],
+      "magnitude": 0.2,
+      "reason": "Simulated economic recession - default rate increases from 7% to 20%",
+      "metadata": {
+        "original_positive_ratio": 0.07571428571428572,
+        "new_positive_ratio": 0.2
+      }
+    }
+  ]
+}

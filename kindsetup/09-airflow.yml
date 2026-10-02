@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: airflow
+  namespace: mlops
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: airflow
+
+  template:
+    metadata:
+      labels:
+        app: airflow
+
+    spec:
+      containers:
+      - name: airflow-webserver
+        image: nimish1106/sh-mlops-airflow-web:v1
+
+        env:
+        - name: AIRFLOW__CORE__SQL_ALCHEMY_CONN
+          value: "postgresql+psycopg2://airflow:airflow@postgres:5432/airflow"
+
+        - name: AIRFLOW__CORE__EXECUTOR
+          value: "LocalExecutor"
+
+        - name: AIRFLOW__WEBSERVER__BASE_URL
+          value: "http://localhost:8080/airflow"
+
+        - name: AIRFLOW__WEBSERVER__ENABLE_PROXY_FIX
+          value: "True"
+
+        - name: AIRFLOW_ADMIN_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: mlops-secrets
+              key: airflow-username
+              optional: true
+
+        - name: AIRFLOW_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mlops-secrets
+              key: airflow-password
+              optional: true
+
+        command: ["/bin/bash", "-c"]
+
+        args:
+          - >
+            airflow db migrate &&
+            airflow users create
+            --username "${AIRFLOW_ADMIN_USERNAME:-admin}"
+            --password "${AIRFLOW_ADMIN_PASSWORD:-admin}"
+            --firstname admin
+            --lastname admin
+            --role Admin
+            --email admin@mlops.com || true &&
+            airflow webserver
+
+        ports:
+        - containerPort: 8080
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: airflow-service
+  namespace: mlops
+
+spec:
+  selector:
+    app: airflow
+
+  ports:
+    - port: 8080
+      targetPort: 8080
